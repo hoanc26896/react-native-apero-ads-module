@@ -203,7 +203,7 @@ dependencies {
     } else {
         implementation jscFlavor
     }
-
+    implementation 'com.ironsource.sdk:mediationsdk:7.1.13'
     implementation project(':reactnativeaperoadsmodule')
 }
 

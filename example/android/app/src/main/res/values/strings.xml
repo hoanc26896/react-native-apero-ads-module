@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">AperoAdsModule Example</string>
+    <string name="facebook_app_id">1561758810851820</string>
+    <string name="facebook_client_token">Facebook Client ID</string>
+    <string name="app_open_test">ca-app-pub-3940256099942544/3419835294</string>
+    <string name="ads_id">ca-app-pub-3940256099942544~3347511713</string>
 </resources>

@@ -1,7 +1,7 @@
 import * as React from 'react';
 
-import { StyleSheet, View, Text } from 'react-native';
-import { multiply } from 'react-native-apero-ads-module';
+import { StyleSheet, View, Text, TouchableOpacity, Platform, ToastAndroid } from 'react-native';
+import { AperoAdsModuleStatusEnum, multiply, onSplashActivity } from 'react-native-apero-ads-module';
 
 export default function App() {
   const [result, setResult] = React.useState<number | undefined>();
@@ -10,9 +10,28 @@ export default function App() {
     multiply(3, 7).then(setResult);
   }, []);
 
+  const onPress = () => {
+    onSplashActivity("ca-app-pub-3940256099942544/1033173712", 0, 0, status => {
+      if (status == AperoAdsModuleStatusEnum.AD_CLOSE) {
+        notifyMessage("Load ads closed")
+      } else {
+        notifyMessage("Load ads false")
+      }
+    })
+  }
+
+  function notifyMessage(msg: string) {
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(msg, ToastAndroid.SHORT)
+    }
+  }
+
   return (
     <View style={styles.container}>
       <Text>Result: {result}</Text>
+      <TouchableOpacity style={styles.btn} onPress={onPress}>
+        <Text>Button</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -28,4 +47,11 @@ const styles = StyleSheet.create({
     height: 60,
     marginVertical: 20,
   },
+  btn: {
+    width: 100,
+    height: 40,
+    backgroundColor: "green",
+    justifyContent: "center",
+    alignItems: "center"
+  }
 });

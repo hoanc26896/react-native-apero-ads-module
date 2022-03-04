@@ -1,5 +1,7 @@
 package com.reactnativeaperoadsmodule
 
+import android.annotation.SuppressLint
+import android.util.Log
 import com.facebook.react.bridge.*
 import com.facebook.react.bridge.UiThreadUtil.runOnUiThread
 import com.google.android.gms.ads.AdError
@@ -12,15 +14,15 @@ class AperoAdsModuleModule(reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
   private lateinit var createInterstitial: InterstitialAd
   var admodInstance: Admod = Admod.getInstance()
-
+  var reactContext: ReactApplicationContext? = null
   companion object {
     val AD_FAIL_TO_LOAD = 0
     val AD_FAIL_TO_SHOW = 1
     val AD_CLOSE = 2
   }
 
-  override fun initialize() {
-    super.initialize()
+  fun AperoAdsModuleModule(reactContext: ReactApplicationContext?) {
+    this.reactContext = reactContext
   }
 
   override fun getName(): String {
@@ -68,7 +70,7 @@ class AperoAdsModuleModule(reactContext: ReactApplicationContext) :
         callback(AD_CLOSE)
       }
     }
-    if (admodInstance == null){
+    if (admodInstance == null) {
       admodInstance = Admod.getInstance()
     }
     runOnUiThread {
@@ -85,51 +87,78 @@ class AperoAdsModuleModule(reactContext: ReactApplicationContext) :
   }
 
   /**
+   * setOpenActivityAfterShowInterAds
+   */
+  @ReactMethod
+  fun setOpenActivityAfterShowInterAds(isOpen: Boolean = false) {
+    if (admodInstance == null) {
+      admodInstance = Admod.getInstance()
+    }
+    runOnUiThread {
+      admodInstance.setOpenActivityAfterShowInterAds(isOpen)
+    }
+  }
+
+  /**
    * load Interstitial
    */
   @ReactMethod
-  fun loadInterCreate(idAdInterstital: String, promise: Promise) {
+  fun loadInterCreate(idAdInterstital: String, callback: Callback) {
+    if (admodInstance == null) {
+      admodInstance = Admod.getInstance()
+    }
     runOnUiThread {
-    admodInstance.getInterstitalAds(
-      currentActivity,
-      idAdInterstital,
-      object : AdCallback() {
-        override fun onInterstitialLoad(interstitialAd: InterstitialAd) {
-          createInterstitial = interstitialAd
-          promise.resolve(true)
-        }
+      admodInstance.getInterstitalAds(
+        currentActivity,
+        idAdInterstital,
+        object : AdCallback() {
+          @SuppressLint("LongLogTag")
+          override fun onInterstitialLoad(interstitialAd: InterstitialAd) {
+            createInterstitial = interstitialAd
+            Log.e("loadInterCreate - onInterstitialLoad - interstitialAd", interstitialAd.toString())
+            callback(createInterstitial)
+          }
 
-        override fun onAdFailedToLoad(i: LoadAdError?) {
-          super.onAdFailedToLoad(i)
-          promise.resolve(false)
-        }
-      })}
+          override fun onAdFailedToLoad(i: LoadAdError?) {
+            super.onAdFailedToLoad(i)
+            callback("")
+          }
+        })
+    }
   }
 
   /**
    * forceShowInterstitial
    */
   @ReactMethod
-  fun forceShowInterstitial(promise: Promise) {
+  fun forceShowInterstitial(callback: Callback) {
+    if (admodInstance == null) {
+      admodInstance = Admod.getInstance()
+    }
+    var adCallback: AdCallback = object : AdCallback() {
+      @SuppressLint("LongLogTag")
+      override fun onAdFailedToLoad(i: LoadAdError?) {
+        Log.e("forceShowInterstitial - AdCallback - onAdFailedToLoad", "")
+        callback(AD_FAIL_TO_LOAD)
+      }
+      @SuppressLint("LongLogTag")
+      override fun onAdFailedToShow(adError: AdError?) {
+        Log.e("forceShowInterstitial - AdCallback - onAdFailedToShow", "")
+        callback(AD_FAIL_TO_SHOW)
+      }
+
+      @SuppressLint("LongLogTag")
+      override fun onAdClosed() {
+        super.onAdClosed()
+        Log.e("forceShowInterstitial - AdCallback - onAdClosed", "")
+        callback(AD_CLOSE)
+      }
+    }
     runOnUiThread {
       admodInstance.forceShowInterstitial(
         currentActivity,
         createInterstitial,
-        object : AdCallback() {
-          override fun onAdClosed() {
-            promise.resolve(true)
-          }
-
-          override fun onAdFailedToShow(adError: AdError?) {
-            super.onAdFailedToShow(adError)
-            promise.resolve(false)
-          }
-
-          override fun onAdFailedToLoad(i: LoadAdError?) {
-            super.onAdFailedToLoad(i)
-            promise.resolve(false)
-          }
-        }
+        adCallback
       )
     }
   }

@@ -1,24 +1,45 @@
 import * as React from 'react';
 
 import { StyleSheet, View, Text, TouchableOpacity, Platform, ToastAndroid } from 'react-native';
-import { AperoAdsModuleStatusEnum, multiply, onSplashActivity } from 'react-native-apero-ads-module';
+import { AperoAdsModuleStatusEnum, forceShowInterstitial, loadInterCreate, onSplashActivity, setOpenActivityAfterShowInterAds } from 'react-native-apero-ads-module';
+import { AdBanner } from '../../src/container/AdBanner';
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
+
 
   React.useEffect(() => {
-    multiply(3, 7).then(setResult);
-  }, []);
+    loadInterCreate("ca-app-pub-3940256099942544/1033173712", createInterstitial => {
+      if (createInterstitial) {
+        // Prepare Success
+      } else {
+        // Prepare Fall
+        notifyMessage("Prepare false");
+      }
+    })
+  }, [])
 
-  const onPress = () => {
+  const onPressSplash = () => {
     onSplashActivity("ca-app-pub-3940256099942544/1033173712", 0, 0, status => {
       if (status == AperoAdsModuleStatusEnum.AD_CLOSE) {
-        notifyMessage("Load ads closed")
+        notifyMessage("Load ads closed");
       } else {
-        notifyMessage("Load ads false")
+        notifyMessage("Load ads false");
+      }
+    });
+  }
+
+  const onPressInter = () => {
+    // setOpenActivityAfterShowInterAds(true)
+    forceShowInterstitial(status => {
+      if (status == AperoAdsModuleStatusEnum.AD_CLOSE) {
+        notifyMessage("Load ads closed");
+      } else {
+        notifyMessage("Load ads false");
       }
     })
   }
+
+
 
   function notifyMessage(msg: string) {
     if (Platform.OS === 'android') {
@@ -28,10 +49,13 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Text>Result: {result}</Text>
-      <TouchableOpacity style={styles.btn} onPress={onPress}>
-        <Text>Button</Text>
+      <TouchableOpacity style={styles.btn} onPress={onPressSplash}>
+        <Text>Button Splash</Text>
       </TouchableOpacity>
+      <TouchableOpacity style={styles.btn} onPress={onPressInter}>
+        <Text>Button Inter</Text>
+      </TouchableOpacity>
+      <AdBanner isShow={true} />
     </View>
   );
 }
@@ -40,7 +64,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-around',
   },
   box: {
     width: 60,

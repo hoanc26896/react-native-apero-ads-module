@@ -1,4 +1,8 @@
-import { NativeModules, Platform } from 'react-native';
+import {
+  NativeModules, Platform, requireNativeComponent,
+  UIManager,
+  ViewStyle,
+} from 'react-native';
 
 const LINKING_ERROR =
   `The package 'react-native-apero-ads-module' doesn't seem to be linked. Make sure: \n\n` +
@@ -35,6 +39,14 @@ export function onCreate() {
   return AperoAdsModule.onCreate()
 }
 
+/**
+ * Show SplashActivity
+ * @param adInterstitialSplash 
+ * @param timeout 
+ * @param timeDelay 
+ * @param callback 
+ * @returns 
+ */
 export function onSplashActivity(adInterstitialSplash: string,
   timeout: number,
   timeDelay: number,
@@ -42,10 +54,46 @@ export function onSplashActivity(adInterstitialSplash: string,
   return AperoAdsModule.onSplashActivity(adInterstitialSplash, timeout, timeDelay, callback)
 }
 
-export function loadInterCreate(idAdInterstital: string): Promise<boolean> {
-  return AperoAdsModule.loadInterCreate(idAdInterstital)
+/**
+ * Prepare Inter Ads
+ * @param idAdInterstital 
+ * @param callback 
+ * @returns 
+ */
+export function loadInterCreate(idAdInterstital: string, callback: (createInterstitial: object) => void) {
+  return AperoAdsModule.loadInterCreate(idAdInterstital, callback)
 }
 
-export function forceShowInterstitial(): Promise<boolean> {
-  return AperoAdsModule.forceShowInterstitial()
+/**
+ * Force show Inter ads
+ * @param createInterstitial 
+ * @param callback 
+ * @returns 
+ */
+export function forceShowInterstitial(callback: (status: AperoAdsModuleStatusEnum) => void) {
+  return AperoAdsModule.forceShowInterstitial(callback)
 }
+
+/**
+ * Allow activity after excute ads
+ * @param isOpen 
+ * @returns 
+ */
+export function setOpenActivityAfterShowInterAds(isOpen: boolean = false) {
+  return AperoAdsModule.setOpenActivityAfterShowInterAds(isOpen)
+}
+
+type AdbannerProps = {
+  color: string;
+  style: ViewStyle;
+  bannerId: string
+};
+
+const ComponentName = 'AdbannerViewManager';
+
+export const AdbannerViewManager =
+  UIManager.getViewManagerConfig(ComponentName) != null
+    ? requireNativeComponent<AdbannerProps>(ComponentName)
+    : () => {
+      throw new Error(LINKING_ERROR);
+    };

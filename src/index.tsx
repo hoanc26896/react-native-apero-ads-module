@@ -1,10 +1,10 @@
+import React, { useEffect, useRef } from 'react';
 import {
-  NativeModules, Platform, requireNativeComponent,
-  UIManager,
-  ViewStyle,
+  NativeModules, Platform
 } from 'react-native';
+import { AdBanner } from './container/AdBannerView';
 
-const LINKING_ERROR =
+export const LINKING_ERROR =
   `The package 'react-native-apero-ads-module' doesn't seem to be linked. Make sure: \n\n` +
   Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
   '- You rebuilt the app after installing the package\n' +
@@ -83,17 +83,4 @@ export function setOpenActivityAfterShowInterAds(isOpen: boolean = false) {
   return AperoAdsModule.setOpenActivityAfterShowInterAds(isOpen)
 }
 
-type AdbannerProps = {
-  color: string;
-  style: ViewStyle;
-  bannerId: string
-};
-
-const ComponentName = 'AdbannerViewManager';
-
-export const AdbannerViewManager =
-  UIManager.getViewManagerConfig(ComponentName) != null
-    ? requireNativeComponent<AdbannerProps>(ComponentName)
-    : () => {
-      throw new Error(LINKING_ERROR);
-    };
+export * from "./container/AdBannerView"

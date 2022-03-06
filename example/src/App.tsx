@@ -1,8 +1,8 @@
 import * as React from 'react';
 
 import { StyleSheet, View, Text, TouchableOpacity, Platform, ToastAndroid } from 'react-native';
-import { AperoAdsModuleStatusEnum, forceShowInterstitial, loadInterCreate, onSplashActivity, setOpenActivityAfterShowInterAds } from 'react-native-apero-ads-module';
-import { AdBanner } from '../../src/container/AdBanner';
+import { AdBanner, AperoAdsModuleStatusEnum, forceShowInterstitial, loadInterCreate, onSplashActivity, setOpenActivityAfterShowInterAds } from 'react-native-apero-ads-module';
+
 
 export default function App() {
 
@@ -55,7 +55,7 @@ export default function App() {
       <TouchableOpacity style={styles.btn} onPress={onPressInter}>
         <Text>Button Inter</Text>
       </TouchableOpacity>
-      <AdBanner isShow={true} />
+      <AdBanner />
     </View>
   );
 }

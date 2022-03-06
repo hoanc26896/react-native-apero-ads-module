@@ -1,102 +1,64 @@
 package com.reactnativeadbanner
 
 import android.annotation.SuppressLint
-import android.graphics.Color
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Choreographer
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.annotation.NonNull
-import androidx.annotation.Nullable
 import androidx.fragment.app.FragmentActivity
-import com.facebook.appevents.internal.ActivityLifecycleTracker.getCurrentActivity
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.common.MapBuilder
-import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
+import com.facebook.react.uimanager.ViewGroupManager
 import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.uimanager.annotations.ReactPropGroup
 import com.reactnativeaperoadsmodule.ads.control.ReactFragment.ReactBannerFragment
 import com.reactnativeaperoadsmodule.ads.control.ads.Admod
 
 
-class AdbannerViewManager(reactContext: ReactApplicationContext) :
-  SimpleViewManager<FrameLayout>() {
-  val COMMAND_BANNER = 1
-  val COMMAND_LOAD = 1
-
+class AdBannerViewManager(val reactContext: ReactApplicationContext) :
+  ViewGroupManager<FrameLayout>() {
+  private val COMMAND_CREATE = 1
   private var propWidth = 0
   private var propHeight = 0
+  private var propPosition = "bottom"
 
-  var reactContext: ReactApplicationContext? = null
   private var admodInstance = Admod.getInstance()
 
-  private var bannerId = ""
+  private val REACT_NAME = "AdBannerViewManager"
+  private var parentView: ViewGroup? = null
 
-  override fun getName() = "AdbannerViewManager"
+  @NonNull
+  override fun getName() = REACT_NAME
 
-  fun AdbannerViewManager(reactContext: ReactApplicationContext?) {
-    this.reactContext = reactContext
-  }
-
-  /**
-   * Load Banner
-   */
-  fun loadBanner() {
-    if (admodInstance == null) {
-      admodInstance = Admod.getInstance()
-    }
-    Log.e("loadBanner - bannerId", bannerId)
-    admodInstance.loadBanner(reactContext?.currentActivity, bannerId)
-  }
-
-  @ReactProp(name = "bannerId")
-  fun setBannerId(view: View, id: String) {
-    bannerId = id
-  }
-
-  @ReactProp(name = "color")
-  fun setColor(view: View, color: String) {
-    view.setBackgroundColor(Color.parseColor(color))
-  }
-
+  @NonNull
   override fun createViewInstance(reactContext: ThemedReactContext): FrameLayout {
     return FrameLayout(reactContext)
   }
 
-  /**
-   * Map the "create" command to an integer
-   */
-  @Nullable
-  override fun getCommandsMap(): Map<String, Int>? {
-    return MapBuilder.of(
-      "banner", COMMAND_BANNER,
-      "load", COMMAND_LOAD
-    )
+  override fun getCommandsMap(): MutableMap<String, Int>? {
+    return MapBuilder.of("create", COMMAND_CREATE)
   }
 
-  /**
-   * Handle "create" command (called from JS) and call createFragment method
-   */
-  @SuppressLint("LongLogTag")
-  fun receiveCommand(
-    @NonNull root: FrameLayout?,
-    commandId: String,
-    args: ReadableArray?
-  ) {
-    super.receiveCommand(root!!, commandId, args)
+  override fun receiveCommand(root: FrameLayout, commandId: String?, args: ReadableArray?) {
+    super.receiveCommand(root, commandId, args)
     val reactNativeViewId = args!!.getInt(0)
-    val commandIdInt = commandId.toInt()
-    Log.e("receiveCommand - commandIdInt: ", commandIdInt.toString())
+    val commandIdInt = commandId!!.toInt()
+
     when (commandIdInt) {
-      COMMAND_BANNER -> createFragment(root, reactNativeViewId)
-      COMMAND_LOAD -> loadBanner()
+      COMMAND_CREATE -> createFragment(root, reactNativeViewId)
       else -> {
       }
     }
+  }
+
+  @ReactProp(name = "isBottomPosition", defaultBoolean = true)
+  open fun setIsBottomPosition(view: FrameLayout?, isBottomPosition: Boolean) {
+    propPosition = if (!isBottomPosition) "top" else "bottom"
   }
 
   @ReactPropGroup(names = ["width", "height"], customType = "Style")
@@ -113,11 +75,11 @@ class AdbannerViewManager(reactContext: ReactApplicationContext) :
    * Replace your React Native view with a custom fragment
    */
   fun createFragment(root: FrameLayout, reactNativeViewId: Int) {
-    val parentView = root.findViewById<View>(reactNativeViewId) as ViewGroup
-    setupLayout(parentView)
+     parentView = root.findViewById<View>(reactNativeViewId) as ViewGroup
+    setupLayout(parentView!!)
     val myFragment = ReactBannerFragment()
-    val activity: FragmentActivity = reactContext?.currentActivity as FragmentActivity
-    activity.supportFragmentManager
+    val activity = reactContext.currentActivity as FragmentActivity?
+    activity!!.supportFragmentManager
       .beginTransaction()
       .replace(reactNativeViewId, myFragment, reactNativeViewId.toString())
       .commit()
@@ -136,10 +98,20 @@ class AdbannerViewManager(reactContext: ReactApplicationContext) :
   /**
    * Layout all children properly
    */
+  @SuppressLint("LongLogTag")
   fun manuallyLayoutChildren(view: View) {
     // propWidth and propHeight coming from react-native props
+    if (propWidth == 0){
+      propWidth = view.measuredWidth
+    }
+    if (propHeight == 0){
+      propHeight = view.measuredHeight
+    }
+
     val width = propWidth
     val height = propHeight
+    Log.e("manuallyLayoutChildren - width", width.toString())
+    Log.e("manuallyLayoutChildren - height", height.toString())
     view.measure(
       View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
       View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY)

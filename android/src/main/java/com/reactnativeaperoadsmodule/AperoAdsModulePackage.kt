@@ -4,7 +4,7 @@ import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.uimanager.ViewManager
-import com.reactnativeadbanner.AdbannerViewManager
+import com.reactnativeadbanner.AdBannerViewManager
 
 
 class AperoAdsModulePackage : ReactPackage {
@@ -13,6 +13,6 @@ class AperoAdsModulePackage : ReactPackage {
     }
 
     override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {
-        return listOf(AdbannerViewManager(reactContext))
+        return listOf(AdBannerViewManager(reactContext))
     }
 }
